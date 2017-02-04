@@ -1,0 +1,38 @@
+addons:
+  apt:
+    packages:
+      - expect-dev  # provides unbuffer utility
+
+language: python
+
+python:
+  - "2.7"
+  - "3.6"
+
+virtualenv:
+  system_site_packages: true
+
+env:
+  global:
+    - PROJECT="Python No ORM"
+    - VERSION="0.1"
+    - RELEASE="0.1.1"
+    - BRANCH_PROD="master"
+    - BRANCH_DOC="gh-pages"
+    - secure: "i6jUgubW6QEd8TtfVwr5CQRTgBASv8KUCGAh66kYQHyJwHm1+uxI4NRx4A1d5wLKdG6Syvlm2gEbC3rx9AFTkSRD+Ga4CmK7i80yzuX0NemDxD6FV5kSLs6y4PQXD++caNQRcB+EDYYmHZb8msnfEabZDGjsYDxyNub4gq7mWS7hZIRKooWKZ0VG0R6lYuZJVE+Je7xn4csueHLHepmNtLYmUqAUsGiYXum8Wf02OYcPsIJS6kIUBGcx7b+U7PliBwefzHkPElD+4XGF62EsgraVfoRfigZcMcZQC3t5BnsqBzOZjOVPzEgRazfiE3MnHw6leIny1hnPy7Z6UrLA81bwWBc9t7vmVSSJMDLtFwu+gxZjocRO7Qu6tp3N44FccfCFEZI8gpeK8z5XW594QFXhw2gTx6caUivjHk57syE0rqMDQkjK5bi30xyAiKrH/hwHyjlWw4qhUnVVVwjnR2cGZXy/PxPqHXpLf3h+IVpkpDJlfsH+8fHJfdxsJv006UuE/gRhbWZxS6cNP+X821Wm1LTSNmATIw86y7EtQKPUKGCo3eiRPSvCdg3WykBV5RItOBA2maW+xqgHGaEYTNWKzaTkG7qvZYrRDv3RO8NiecKM2fZU6ZIeS04nvFC14m212QJsbKeaB3SVBZHD92pXLPizL1wONq1pcXweP6c="
+  matrix:
+    - LINT_CHECK="1"
+    - TESTS="1"
+    - PYPI="1"
+    - DOCS="1"
+
+install:
+  - git clone --depth=1 https://github.com/LasLabs/python-quality-tools.git ${HOME}/python-quality-tools
+  - export PATH=${HOME}/python-quality-tools/travis:${PATH}
+  - travis_install
+
+script:
+  - travis_run
+
+after_success:
+  - travis_after_success
