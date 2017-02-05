@@ -17,7 +17,7 @@ Installation
 This library only depends on Python. Install using pip:
 
 ```
-pip install noorm
+pip install python-ephorm
 ```
 
 Setup
