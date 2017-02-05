@@ -3,11 +3,12 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 import operator
+import properties
 
 from collections import Iterable, MutableSet
 
 from .model import Model
-from .exceptions import RecordsetRecordsetValueError
+from .exceptions import RecordsetValueError
 
 
 OPERATOR_MAP = {
@@ -31,24 +32,26 @@ class Recordset(MutableSet):
             for row in data:
                 self.add(row)
 
-    def add(self, recordset):
+    def add(self, records):
         """ Add a Record (instantiated Model) or Recordset to the collection.
 
         Args:
-            recordset (Model|Iterable): A model instance or iterator of model
-                instances that will be added to the collection. Note that
+            record (HasProperties|Recordset): A model instance or iterator of
+                model instances that will be added to the collection. Note that
                 all models must be of the same data type as the first record
                 inserted into the collection.
         """
-        if isinstance(recordset, Iterable):
-            return [self.add(inner) for inner in recordset]
+        if isinstance(record, Recordset):
+            return [self.add(record) for record in records]
         if not self.type:
-            self.initialize(recordset)
-        if not isinstance(recordset, self.type):
+            self.initialize(records)
+        if not isinstance(records, self.type):
             raise RecordsetValueError(
                 'A Recordset may not contain Models of disparate types.',
             )
-        return self.data.add(recordset)
+        result = self.data.add(records)
+        records.__recordsets__.add(self)
+        return result
 
     def clear(self):
         return self.data.clear()
@@ -56,12 +59,12 @@ class Recordset(MutableSet):
     def discard(self, value):
         return self.data.discard(value)
 
-    def initialize(self, recordset):
-        if not isinstance(recordset, Model):
+    def initialize(self, record):
+        if not isinstance(record, Model):
             raise RecordsetValueError(
                 'A Recordset may only contain objects inherited from Model.',
             )
-        self.type = recordset.__class__
+        self.type = record.__class__
 
     def isdisjoint(self, other):
         return self.data.isdisjoint(other)
@@ -70,19 +73,19 @@ class Recordset(MutableSet):
         return self.data.pop()
 
     def remove(self, value):
-        return self.data.remote(value)
+        return self.data.remove(value)
 
     # CRUD
 
     def create(self, vals):
-        """ It passes create through to the Model & adds to the collection.
+        """ It creates a new record & adds to the collection.
 
         Args:
             vals (dict): Dictionary of values to send to Model create.
         Returns:
             Model: The newly created record.
         """
-        return self.type.create(vals, self)
+        self.type(__recordset__=self, **vals)
 
     def search(self, domain):
         """ It searches existing records for conditions in domain.
@@ -101,6 +104,16 @@ class Recordset(MutableSet):
             )
         return records
 
+    def unlink(self, record):
+        """ Alias for remove. """
+        return self.remove(record)
+
+    # Helpers
+
+    def filtered(self, method):
+        return self.__class__(
+            filter(method, self),
+        )
 
     # Interface
 
